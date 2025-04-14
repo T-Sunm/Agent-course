@@ -1,51 +1,53 @@
-from llama_index.core.agent.workflow import FunctionAgent
-from llama_index.llms.ollama import Ollama
-import torch
-from transformers import BitsAndBytesConfig
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
-# from langchain.llms.huggingface_pipeline import HuggingFacePipeline
-
-nf4_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_use_double_quant=True,
-    bnb_4bit_compute_dtype=torch.bfloat16
-)
-
-def get_ollama_llms(model_name="qwen2.5:0.5b"):
-  llm = Ollama(
-      model=model_name,
-      # Đảm bảo server Ollama đang chạy ở địa chỉ này
-      base_url="http://127.0.0.1:12345",
-      request_timeout=360.0
-  )
-
-  return llm
+from llama_index.readers.file import PDFReader
+from typing import Union, List, Literal
+import glob
+from tqdm import tqdm
+import multiprocessing
+from llama_index.core import SimpleDirectoryReader
+# from langchain_community.document_loaders import PyPDFLoader
+# from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
-# def get_hf_llm(model_name: str = "meta-llama/Llama-3.2-3B-Instruct",
-#                max_new_token=1024,
-#                **kwargs):
+def load_pdf(pdf_file: str) -> List:
+  """
+  Load một file PDF sử dụng PDFReader của llama_index.
 
-#   model = AutoModelForCausalLM.from_pretrained(
-#       model_name,
-#       quantization_config=nf4_config,
-#       low_cpu_mem_usage=True
-#   )
-#   tokenizer = AutoTokenizer.from_pretrained(model_name)
+  :param pdf_file: Đường dẫn file PDF
+  :return: Danh sách document được load từ file PDF.
+  """
+  try:
+    loader = PDFReader()
+    documents = loader.load_data(pdf_file)
+  except Exception as e:
+    print(f"Lỗi khi load {pdf_file}: {e}")
+    documents = []
+  return documents
 
-#   model_pipeline = pipeline(
-#       "text-generation",
-#       model=model,
-#       tokenizer=tokenizer,
-#       max_new_tokens=max_new_token,
-#       pad_token_id=tokenizer.eos_token_id,
-#       device_map="auto"
-#   )
+def load_multiple_pdfs(pdf_files: List[str], workers: int = 4) -> List:
+  """
+  Sử dụng multiprocessing để load song song nhiều file PDF.
 
-#   llm = HuggingFacePipeline(
-#       pipeline=model_pipeline,
-#       model_kwargs=kwargs
-#   )
+  :param pdf_files: Danh sách đường dẫn file PDF.
+  :param workers: Số lượng worker/processes sử dụng.
+  :return: Danh sách các document được load.
+  """
+  num_processes = min(multiprocessing.cpu_count(), workers)
+  docs_loaded = []
+  total_files = len(pdf_files)
 
-#   return llm
+  with multiprocessing.Pool(processes=num_processes) as pool:
+    with tqdm(total=total_files, desc="Loading PDFs", unit="file") as pbar:
+      for result in pool.imap_unordered(load_pdf, pdf_files):
+        docs_loaded.extend(result)
+        pbar.update(1)
+  return docs_loaded
+
+
+if __name__ == "__main__":
+    # Danh sách file PDF cần load (đảm bảo đường dẫn file chính xác)
+  pdf_files = [
+      "../../data_source/Attention Is All You Need.pdf",
+      "../../data_source/BERT - Pre-training of Deep Bidirectional Transformers for Language Understanding.pdf",
+  ]
+  documents = load_multiple_pdfs(pdf_files, workers=4)
+  print(f"Đã load {len(documents)} document từ {len(pdf_files)} file PDF.")
