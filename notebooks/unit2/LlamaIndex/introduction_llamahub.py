@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
-import asyncio
-import nest_asyncio
 from llama_index.core.agent.workflow import FunctionAgent
 from llama_index.llms.ollama import Ollama
-
-# Áp dụng nest_asyncio để hỗ trợ asyncio (nếu cần, ví dụ trong Jupyter)
-nest_asyncio.apply()
 
 # Định nghĩa một công cụ tính toán đơn giản
 def multiply(a: float, b: float) -> float:
@@ -34,9 +29,6 @@ async def main():
   print("Agent Response:")
   print(response)
 
-def run_agent():
-  asyncio.run(main())
-
 
 if __name__ == "__main__":
-  run_agent()
+  main()
