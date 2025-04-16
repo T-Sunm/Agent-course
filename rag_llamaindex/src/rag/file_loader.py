@@ -3,51 +3,89 @@ from typing import Union, List, Literal
 import glob
 from tqdm import tqdm
 import multiprocessing
-from llama_index.core import SimpleDirectoryReader
+import os
+
 # from langchain_community.document_loaders import PyPDFLoader
 # from langchain_text_splitters import RecursiveCharacterTextSplitter
+pdf_dir = "../../data_source"
 
+class PDFLoader():
+  def __init__(self, pdf_files: Union[str, List[str]]):
+    """
+    Khởi tạo PDFLoader với danh sách file PDF.
+    """
 
-def load_pdf(pdf_file: str) -> List:
-  """
-  Load một file PDF sử dụng PDFReader của llama_index.
+    self.pdf_files = pdf_files
 
-  :param pdf_file: Đường dẫn file PDF
-  :return: Danh sách document được load từ file PDF.
-  """
-  try:
-    loader = PDFReader()
-    documents = loader.load_data(pdf_file)
-  except Exception as e:
-    print(f"Lỗi khi load {pdf_file}: {e}")
-    documents = []
-  return documents
+  @staticmethod
+  def remove_non_utf8_characters(text: str) -> str:
+    """
+    Loại bỏ các ký tự không phải ASCII (dùng ord(char) < 128).
+    """
+    return ''.join(char for char in text if ord(char) < 128)
 
-def load_multiple_pdfs(pdf_files: List[str], workers: int = 4) -> List:
-  """
-  Sử dụng multiprocessing để load song song nhiều file PDF.
+  def load_pdf(self, pdf_file: str) -> str:
+    """
+    Load một file PDF sử dụng PDFReader của llama_index.
 
-  :param pdf_files: Danh sách đường dẫn file PDF.
-  :param workers: Số lượng worker/processes sử dụng.
-  :return: Danh sách các document được load.
-  """
-  num_processes = min(multiprocessing.cpu_count(), workers)
-  docs_loaded = []
-  total_files = len(pdf_files)
+    :param pdf_file: Đường dẫn file PDF
+    :return: Danh sách document được load từ file PDF.
+    """
+    try:
+      loader = PDFReader()
+      documents = loader.load_data(pdf_file)
 
-  with multiprocessing.Pool(processes=num_processes) as pool:
-    with tqdm(total=total_files, desc="Loading PDFs", unit="file") as pbar:
-      for result in pool.imap_unordered(load_pdf, pdf_files):
-        docs_loaded.extend(result)
-        pbar.update(1)
-  return docs_loaded
+    except Exception as e:
+      print(f"Lỗi khi load {pdf_file}: {e}")
+      documents = []
+    return documents
 
+  def __call__(self, workers: int = 4) -> List:
+    """
+    Sử dụng multiprocessing để load song song nhiều file PDF.
 
-if __name__ == "__main__":
-    # Danh sách file PDF cần load (đảm bảo đường dẫn file chính xác)
-  pdf_files = [
-      "../../data_source/Attention Is All You Need.pdf",
-      "../../data_source/BERT - Pre-training of Deep Bidirectional Transformers for Language Understanding.pdf",
-  ]
-  documents = load_multiple_pdfs(pdf_files, workers=4)
-  print(f"Đã load {len(documents)} document từ {len(pdf_files)} file PDF.")
+    :param workers: Số lượng worker/processes sử dụng.
+    :return: Danh sách các document được load.
+    """
+    num_processes = min(multiprocessing.cpu_count(), workers)
+    docs_loaded = []
+    total_files = len(self.pdf_files)
+
+    with multiprocessing.Pool(processes=num_processes) as pool:
+      with tqdm(total=total_files, desc="Loading PDFs", unit="file") as pbar:
+        for result in pool.imap_unordered(self.load_pdf, self.pdf_files):
+          docs_loaded.extend(result)
+          pbar.update(1)
+
+    return docs_loaded
+
+class Loader:
+  def __init__(self, pdf_dir: str, workers: int = 4):
+    self.pdf_dir = pdf_dir
+    self.workers = workers
+    self.pdf_files = self._get_pdf_files()
+    self.documents = self._load_documents()
+
+  def _get_pdf_files(self):
+    pdf_files = [
+        os.path.join(self.pdf_dir, f)
+        for f in os.listdir(self.pdf_dir)
+        if f.endswith(".pdf")
+    ]
+    if not pdf_files:
+      print(f"❌ Không tìm thấy file PDF trong thư mục: {self.pdf_dir}")
+    else:
+      print(f"📄 Tìm thấy {len(pdf_files)} file PDF.")
+    return pdf_files
+
+  def _load_documents(self):
+    if not self.pdf_files:
+      return None
+    doc_loader = PDFLoader(self.pdf_files)
+    documents = doc_loader(workers=self.workers)
+    print(
+        f"✅ Đã load {len(documents)} documents từ {len(self.pdf_files)} file PDF.")
+    return documents
+
+  def get_documents(self):
+    return self.documents
