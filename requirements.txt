@@ -7,3 +7,5 @@ llama-index-utils-workflow==0.3.1
 llama-index-vector-stores-chroma==0.4.1
 llama-index-llms-ollama==0.5.4
 pyvis==0.3.2
+gradio==5.29.0
+pyautogen==0.9
