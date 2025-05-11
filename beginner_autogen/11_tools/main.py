@@ -53,10 +53,10 @@ user_proxy = autogen.ConversableAgent(
 )
 
 # Register the tool signature with the assistant agent.
-# assistant.register_for_llm(
-#     name="get_weather", description="Get the current weather for a specific location")(get_weather)
-# assistant.register_for_llm(
-#     name="get_time", description="The IANA time zone name, e.g. America/Los_Angeles")(get_time)
+assistant.register_for_llm(
+    name="get_weather", description="Get the current weather for a specific location")(get_weather)
+assistant.register_for_llm(
+    name="get_time", description="The IANA time zone name, e.g. America/Los_Angeles")(get_time)
 
 
 # Register the tool function with the user proxy agent.
