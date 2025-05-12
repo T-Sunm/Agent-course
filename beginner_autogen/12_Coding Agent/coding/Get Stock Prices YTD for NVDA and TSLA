@@ -1,0 +1,32 @@
+# Get Stock Prices YTD for NVDA and TSLA
+import yfinance as yf
+import matplotlib.pyplot as plt
+
+def get_stock_prices():
+  # Get the stock prices for NVDA and TSLA
+  nvda = yf.download('NVDA', start='2025-05-13', end='2025-05-12')
+  tsla = yf.download('TSLA', start='2025-05-13', end='2025-05-12')
+
+  # Calculate YTD returns
+  nvda_ytd_return = (nvda['Close'] - 1) / nvda['Close'].shift(1)
+  tsla_ytd_return = (tsla['Close'] - 1) / tsla['Close'].shift(1)
+
+  return nvda_ytd_return, tsla_ytd_return
+
+def plot_stock_prices(nvda_ytd_return, tsla_ytd_return):
+  # Create plot
+  plt.figure(figsize=(12, 6))
+  plt.plot(nvda_ytd_return.index, nvda_ytd_return.values, label='NVDA')
+  plt.plot(tsla_ytd_return.index, tsla_ytd_return.values, label='TSLA')
+  plt.title('YTD Stock Prices for NVDA and TSLA')
+  plt.xlabel('Date')
+  plt.ylabel('Return')
+  plt.legend()
+  plt.savefig('stock_prices_YTD_plot.png', bbox_inches='tight')
+
+
+# Get YTD returns
+nvda_ytd_return, tsla_ytd_return = get_stock_prices()
+
+# Plot stock prices
+plot_stock_prices(nvda_ytd_return, tsla_ytd_return)
