@@ -35,6 +35,7 @@ user_proxy = autogen.UserProxyAgent(
 CurrencySymbol = Literal["USD", "EUR"]
 
 
+# nhớ định nghĩa type hint
 def exchange_rate(base_currency: CurrencySymbol, quote_currency: CurrencySymbol) -> float:
   if base_currency == quote_currency:  # Nếu bạn đổi cùng một loại tiền
     return 1.0

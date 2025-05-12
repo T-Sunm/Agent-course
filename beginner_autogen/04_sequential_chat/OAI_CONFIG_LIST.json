@@ -1,12 +1,12 @@
 [
     {
         "model": "qwen2.5:1.5b",
-        "base_url": "http://127.0.0.1:12345/v1",
+        "base_url": "http://26.65.38.219:1234/v1",
         "api_key": "NULL"
     },
     {
         "model": "qwen2.5:1.5b",
-        "base_url": "http://127.0.0.1:12345/v1",
+        "base_url": "http://26.65.38.219:1234/v1",
         "api_key": "NULL"
     }
 ]
