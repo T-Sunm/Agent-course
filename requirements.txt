@@ -11,3 +11,4 @@ gradio==5.29.0
 pyautogen==0.9
 matplotlib==3.10.3
 yfinance==0.2.61
+ipywidgets
