@@ -1,1 +1,0 @@
-python fetch_news.py
