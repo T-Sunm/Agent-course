@@ -9,6 +9,8 @@ llama-index-llms-ollama==0.5.4
 pyvis==0.3.2
 gradio==5.29.0
 pyautogen==0.9
+autogen-agentchat==0.5.7
+autogen-ext[openai,azure]==0.5.7
 matplotlib==3.10.3
 yfinance==0.2.61
 ipywidgets
