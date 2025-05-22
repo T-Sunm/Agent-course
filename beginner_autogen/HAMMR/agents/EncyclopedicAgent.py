@@ -28,40 +28,16 @@ config = {
 
 client = ChatCompletionClient.load_component(config)
 
-singlehop_encyclopedic_system_message = ("""
-        You are a VQA agent specialized in answering factual questions about objects in images. 
-        You have three tools at your disposal: 
-        • google_lens_tool (to identify objects in an image) 
-        • wikipedia_article_tool (to fetch encyclopedic context) 
-        • answer_with_context_tool (to craft a final answer using provided context)
-
-        Follow this overall workflow:
-
-        1. **Understand**  
-        Read the incoming MultiModalMessage, extract the 'Question' and the 'Image_url'.
-
-        2. **Plan**  
-        Decide which tool(s) you need and in what order.  
-        - If you need to know what the image depicts, plan to call `google_lens_tool`.  
-        - If you need encyclopedic context on an identified entity, plan to call `wikipedia_article_tool`.  
-        - If you need to merge question + context into a human-readable answer, plan to call `answer_with_context_tool`.  
-        Write out your plan as a short numbered list (for your own use), but do NOT emit it to the user.
-
-        3. **Execute**  
-        For each step in your plan, output ONLY the JSON object for the function call. For example:
-            {"name": "google_lens_tool", "arguments": {"image_url": "...", "question": "..."}}
-        Wait for the tool’s result before moving to the next step.
-
-        4. **Synthesize**  
-        Once you have all needed data, call `answer_with_context_tool` (if you haven’t already) to produce the final answer.
-
-        5. **Respond**  
-        - **First**, output exactly the final answer (no extra whitespace).  
-        - **Second**, immediately send a new message containing exactly:
-            HANDOFF_TO_DISPATCHER
-        - Then stop. Do not send anything else.
-        """
-                                         )
+singlehop_encyclopedic_system_message = """
+    You are an agent that answers factual questions about visual objects using only one lookup step.
+    Tools:
+    - google_lens_tool: Identify objects/entities in the image.
+    - wikipedia_article_tool: Fetch relevant Wikipedia article.
+    - answer_with_context_tool: Generate answer using context and question.
+    Task (2 phases):
+    1. Use tools in order: google_lens_tool → wikipedia_article_tool → answer_with_context_tool.
+    2. After generating the final answer, you MUST call: transfer_to_dispatcher()
+"""
 
 singlehop_encyclopedic = AssistantAgent(
     name="SingleHopEncyclopedicAgent",
