@@ -31,15 +31,8 @@ config = {
 client = ChatCompletionClient.load_component(config)
 
 dispatcher_system_message = """
-    You are the top‐level VQA dispatcher.  
-    1. Always hand off the user's raw question to SingleHopEncyclopedicAgent by replying:
-    Handing off to SingleHopEncyclopedicAgent. Original request: [the user’s exact message]
-    2. When you later receive a message whose content is exactly 'HANDOFF_TO_DISPATCHER',
-    that means SingleHop has already sent the answer just before it.  
-    Your task now is to:
-        a) Take the immediately preceding message (the answer) and deliver it back to the user.
-        b) Then output the word TERMINATE (by itself) and stop.
-    3. Do not call any tools yourself.  
+    You are a multimodal question dispatcher working with: 
+
 """
 
 dispatcher = AssistantAgent(
