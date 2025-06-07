@@ -17,6 +17,7 @@ ipywidgets
 langchain==0.3.24
 langchain-openai==0.3.14
 langgraph==0.3.33
+langchain-core==0.3.60
 langchain-tavily==0.1.6
 langchain-community==0.3.24
 google-cloud-aiplatform==1.93.1
