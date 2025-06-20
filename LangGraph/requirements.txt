@@ -6,3 +6,7 @@ langchain-community==0.3.25
 wikipedia==1.4.0
 arxiv==2.2.0
 duckduckgo-search-api==0.1.5
+transformers==4.51.3
+sentencepiece==0.2.0
+accelerate==1.8.0
+protobuf==6.31.1
