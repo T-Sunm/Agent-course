@@ -121,9 +121,9 @@ def run_full_image_vqa(
   return result
 
 
-if __name__ == "__main__":
-    # VD dùng hàm từ dòng lệnh
-  URL = "https://github.com/NVlabs/describe-anything/blob/main/images/1.jpg?raw=true"
-  Q = "What color is the dog's fur?"
-  result = run_full_image_vqa(URL, Q)
-  print(result)
+# if __name__ == "__main__":
+#     # VD dùng hàm từ dòng lệnh
+#   URL = "https://github.com/NVlabs/describe-anything/blob/main/images/1.jpg?raw=true"
+#   Q = "What color is the dog's fur?"
+#   result = run_full_image_vqa(URL, Q)
+#   print(result)
