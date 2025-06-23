@@ -71,14 +71,6 @@ def run_full_image_vqa(
     image_url: str,
     question: str,
 ) -> str:
-  """
-  Tải ảnh từ `image_url`, tạo full‐mask, visualize nếu cần,
-  rồi gọi DAM để trả về 5 đáp án hàng đầu cho `question`.
-
-  Nếu save_vis_path được truyền, lưu ảnh contour vào đường dẫn đó.
-  Nếu show_vis=True, mở ảnh bằng Image.show().
-  """
-  # 1. Load image
   resp = requests.get(image_url)
   resp.raise_for_status()
   img = Image.open(BytesIO(resp.content)).convert('RGB')
@@ -121,9 +113,9 @@ def run_full_image_vqa(
   return result
 
 
-# if __name__ == "__main__":
-#     # VD dùng hàm từ dòng lệnh
-#   URL = "https://github.com/NVlabs/describe-anything/blob/main/images/1.jpg?raw=true"
-#   Q = "What color is the dog's fur?"
-#   result = run_full_image_vqa(URL, Q)
-#   print(result)
+if __name__ == "__main__":
+    # VD dùng hàm từ dòng lệnh
+  URL = "https://github.com/NVlabs/describe-anything/blob/main/images/1.jpg?raw=true"
+  Q = "What color is the dog's fur?"
+  result = run_full_image_vqa(URL, Q)
+  print(result)
