@@ -67,7 +67,7 @@ def print_streaming(text):
   print(text, end="", flush=True)
 
 
-def run_full_image_vqa(
+def candidate_answers(
     image_url: str,
     question: str,
 ) -> str:
@@ -98,8 +98,6 @@ def run_full_image_vqa(
                 Question: {question.strip()}
                 Answer:"""
 
-  # 5. Chạy DAM và in kết quả
-  print("Description:")
   result = dam.get_description(
       img,
       full_mask,
@@ -113,9 +111,49 @@ def run_full_image_vqa(
   return result
 
 
-if __name__ == "__main__":
-    # VD dùng hàm từ dòng lệnh
-  URL = "https://github.com/NVlabs/describe-anything/blob/main/images/1.jpg?raw=true"
-  Q = "What color is the dog's fur?"
-  result = run_full_image_vqa(URL, Q)
-  print(result)
+def caption_image(
+    image_url: str,
+) -> str:
+  resp = requests.get(image_url)
+  resp.raise_for_status()
+  img = Image.open(BytesIO(resp.content)).convert('RGB')
+
+  # 2. Tạo full‐mask
+  full_mask = Image.new("L", img.size, 255)
+
+  # 4. Tạo prompt
+  prompt = f"""<image>
+    You are an image captioning system.
+    Given an image, describe it in one concise and factual sentence.
+    – Only describe what is clearly visible in the image.
+    – Do not make guesses or add subjective opinions.
+    – Output only the caption on a single line, no extra text.
+
+    Example 1:
+    Caption: A man riding a bicycle on a city street.
+
+    Example 2:
+    Caption: A cat sitting on a windowsill looking outside.
+
+    Now apply to the new image:
+
+    Caption:"""
+
+  result = dam.get_description(
+      img,
+      full_mask,
+      prompt,
+      streaming=False,
+      temperature=0.2,
+      top_p=0.5,
+      num_beams=1,
+      max_new_tokens=512
+  )
+  return result
+
+# if __name__ == "__main__":
+#     # VD dùng hàm từ dòng lệnh
+#   URL = "https://github.com/NVlabs/describe-anything/blob/main/images/1.jpg?raw=true"
+#   Q = "What color is the dog's fur?"
+#   result = caption_image(URL)
+#   print(result)
