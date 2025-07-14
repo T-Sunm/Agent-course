@@ -5,6 +5,7 @@ from transformers import SamModel, SamProcessor, AutoModel
 import cv2
 import requests
 from io import BytesIO
+from langchain_core.tools import tool
 
 device = torch.device("cpu")
 sam_model = SamModel.from_pretrained("facebook/sam-vit-base").to(device)
@@ -18,23 +19,23 @@ model = AutoModel.from_pretrained(
 dam = model.init_dam(conv_mode='v1', prompt_mode='full+focal_crop')
 
 
-def apply_sam(image, input_points=None, input_boxes=None, input_labels=None):
-  inputs = sam_processor(image, input_points=input_points, input_boxes=input_boxes,
-                         input_labels=input_labels, return_tensors="pt").to(device)
+# def apply_sam(image, input_points=None, input_boxes=None, input_labels=None):
+#   inputs = sam_processor(image, input_points=input_points, input_boxes=input_boxes,
+#                          input_labels=input_labels, return_tensors="pt").to(device)
 
-  with torch.no_grad():
-    outputs = sam_model(**inputs)
+#   with torch.no_grad():
+#     outputs = sam_model(**inputs)
 
-  masks = sam_processor.image_processor.post_process_masks(
-      outputs.pred_masks.cpu(),
-      inputs["original_sizes"].cpu(),
-      inputs["reshaped_input_sizes"].cpu()
-  )[0][0]
-  scores = outputs.iou_scores[0, 0]
+#   masks = sam_processor.image_processor.post_process_masks(
+#       outputs.pred_masks.cpu(),
+#       inputs["original_sizes"].cpu(),
+#       inputs["reshaped_input_sizes"].cpu()
+#   )[0][0]
+#   scores = outputs.iou_scores[0, 0]
 
-  mask_selection_index = scores.argmax()
-  mask_np = masks[mask_selection_index].numpy()
-  return mask_np
+#   mask_selection_index = scores.argmax()
+#   mask_np = masks[mask_selection_index].numpy()
+#   return mask_np
 
 
 def add_contour(img, mask, input_points=None, input_boxes=None):
@@ -157,3 +158,7 @@ def caption_image(
 #   Q = "What color is the dog's fur?"
 #   result = caption_image(URL)
 #   print(result)
+@tool
+def vqa_tool(image_url: str, question: str) -> str:
+    """return the candidate answer with probability of the question"""
+    return candidate_answers(image_url, question)
