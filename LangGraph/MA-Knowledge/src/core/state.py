@@ -10,7 +10,7 @@ class ViReAgentState(MessagesState):
     question: str
     image: str
     image_caption: str
-    results: Annotated[List[str], operator.add]
+    results: Annotated[List[Dict[str, str]], operator.add]
     final_answer: str
     voting_details: Dict[str, Any]
 
@@ -21,6 +21,7 @@ class ViReJuniorState(MessagesState):
     analyst: JuniorAgent
     number_of_steps: int
     answer_candidate: str
+    results: Dict[str, str]
 
 class ViReSeniorState(MessagesState):
     question: str
@@ -29,7 +30,7 @@ class ViReSeniorState(MessagesState):
     number_of_steps: int
     answer_candidate: str
     KBs_Knowledge: Annotated[List[str], operator.add]
-
+    results: Dict[str, str]
 class ViReManagerState(MessagesState):
     question: str
     image: str
@@ -38,3 +39,8 @@ class ViReManagerState(MessagesState):
     answer_candidate: str
     KBs_Knowledge: Annotated[List[str], operator.add]
     LLM_Knowledge: str
+    results: Dict[str, str]
+
+
+class SubgraphOutputState(MessagesState):
+    results: Dict[str, str]

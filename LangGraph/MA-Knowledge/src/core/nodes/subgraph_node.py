@@ -21,10 +21,9 @@ def tool_node(state: Union[ViReJuniorState, ViReSeniorState, ViReManagerState],
         try:
             if tool_name == "vqa_tool":
                 print(f"Processing vqa_tool calls")
-                args = tool_call["args"]
-                if not args.get("image_url"):
-                    args["image_url"] = state.get("image")
-                result = tools_registry[tool_name].invoke(args)
+                if not tool_call["args"].get("image_url"):
+                    tool_call["args"]["image_url"] = state.get("image")
+                result = tools_registry[tool_name].invoke(tool_call["args"])
                 print(f"Result: {result}")
                 updates["answer_candidate"] = result
                 
@@ -91,10 +90,11 @@ def call_agent_node(state: Union[ViReJuniorState, ViReSeniorState, ViReManagerSt
 
     response = llm.invoke(sequence, config)
     
-    updates = dict(state)
-    updates["messages"] = state["messages"] + [response]
-    
-    return updates
+    return {
+        "messages": state["messages"] + [response],
+        "analyst": state["analyst"],
+        "number_of_steps": state.get("number_of_steps", 0) + 1
+    }
 
 
 def final_reasoning_node(state: Union[ViReJuniorState, ViReSeniorState, ViReManagerState]) -> Dict[str, Any]:
@@ -123,14 +123,14 @@ def final_reasoning_node(state: Union[ViReJuniorState, ViReSeniorState, ViReMana
     llm = get_llm(temperature=0.1)
     
     system_msg = SystemMessage(content=final_system_prompt)
-    human_msg = HumanMessage(content="Please provide your final analysis and answer.")
+    human_msg = HumanMessage(content="Please provide your final answer.")
     
     final_response = llm.invoke([system_msg, human_msg])
-    print("Final answer candidate:", state.get("answer_candidate", None))
-    
+    print("Answer candidate:", state.get("answer_candidate", None))
+    print("Final response:", final_response)
     return {
         "messages": [final_response],
-        "results": [final_response.content],
+        "results": [{state["analyst"].name: final_response.content}],
         "number_of_steps": state.get("number_of_steps", 0) + 1
     }
 

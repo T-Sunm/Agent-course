@@ -1,7 +1,7 @@
 from typing import Dict, Any, List, Tuple
 from collections import Counter
 import re
-from src.core.state import ViReAgentState
+# from src.core.state import ViReAgentState
 
 def extract_answer_from_result(result: str) -> str:
     """
@@ -71,7 +71,7 @@ def voting_function(junior_answer: str, senior_answer: str, manager_answer: str)
     # Fallback if no valid answers
     return "", {}
 
-def voting_node(state: ViReAgentState) -> Dict[str, Any]:
+def voting_node(state) -> Dict[str, Any]:
     """
     Voting node that implements weighted voting mechanism from paper.
     
@@ -99,10 +99,13 @@ def voting_node(state: ViReAgentState) -> Dict[str, Any]:
             }
         }
     
-    # Extract answers from each agent
-    junior_result = results[0] if len(results) > 0 else ""
-    senior_result = results[1] if len(results) > 1 else ""
-    manager_result = results[2] if len(results) > 2 else ""
+    # convert list of dict to dict
+    agent_results = {k: v for d in results for k, v in d.items()}
+        
+    # Extract answers from each agent by name
+    junior_result = agent_results.get("Junior", "")
+    senior_result = agent_results.get("Senior", "")
+    manager_result = agent_results.get("Manager", "")
     
     junior_answer = extract_answer_from_result(junior_result)
     senior_answer = extract_answer_from_result(senior_result)
@@ -143,29 +146,61 @@ def voting_node(state: ViReAgentState) -> Dict[str, Any]:
 
 def weighted_voting_example():
     """
-    Example demonstrating the voting mechanism as described in the paper.
+    Example demonstrating the voting mechanism with realistic data structure.
     
-    Example from paper:
-    - Answer A (only from Junior): 2 votes
-    - Answer B (from Senior and Manager): 3 + 4 = 7 votes
-    → Answer B wins
+    Simulates the actual data structure after all agents complete their analysis.
+    Example scenario:
+    - Junior says "cat": 2 votes
+    - Senior says "dog": 3 votes  
+    - Manager says "dog": 4 votes
+    → "dog" wins with 7 votes vs "cat" with 2 votes
     """
     
-    print("EXAMPLE FROM PAPER:")
-    print("-" * 30)
+    print("REALISTIC VOTING EXAMPLE:")
+    print("-" * 40)
     
-    # Scenario: Junior says A, Senior and Manager say B
+    # Simulate realistic state after graph completion
+    # This mimics what voting_node actually receives
+    dummy_state = {
+        "results": [
+            {"Junior": "cat"},
+            {"Senior": "dog"}, 
+            {"Manager": "dog"}
+        ]
+    }
+    
+    print("Simulated results from agents:")
+    for i, result_dict in enumerate(dummy_state["results"]):
+        for agent_name, response in result_dict.items():
+            print(f"  {agent_name}: '{response}'")
+    
+    # Process using actual voting_node logic
+    print("\nProcessing through voting_node logic:")
+    
+    # Convert list of dict to dict (same as voting_node)
+    agent_results = {k: v for d in dummy_state["results"] for k, v in d.items()}
+    
+    # Extract answers (same logic as voting_node)
+    junior_result = agent_results.get("Junior", "")
+    senior_result = agent_results.get("Senior", "")
+    manager_result = agent_results.get("Manager", "")
+    
+    junior_answer = extract_answer_from_result(junior_result)
+    senior_answer = extract_answer_from_result(senior_result)
+    manager_answer = extract_answer_from_result(manager_result)
+    
+    print(f"  Extracted Junior answer: '{junior_answer}' (Weight: 2)")
+    print(f"  Extracted Senior answer: '{senior_answer}' (Weight: 3)")
+    print(f"  Extracted Manager answer: '{manager_answer}' (Weight: 4)")
+    
+    # Apply weighted voting
     final_answer, vote_breakdown = voting_function(
-        junior_answer="A",
-        senior_answer="B", 
-        manager_answer="B"
+        junior_answer, senior_answer, manager_answer
     )
     
-    print(f"Junior: 'A' (2 votes)")
-    print(f"Senior: 'B' (3 votes)")
-    print(f"Manager: 'B' (4 votes)")
-    print(f"Vote breakdown: {vote_breakdown}")
-    print(f"Winner: '{final_answer}' with {vote_breakdown[final_answer]} votes")
+    print(f"\nVote breakdown: {vote_breakdown}")
+    print(f"Winner: '{final_answer}' with {vote_breakdown.get(final_answer, 0)} total votes")
+    print("-" * 40)
     
     return final_answer, vote_breakdown
 

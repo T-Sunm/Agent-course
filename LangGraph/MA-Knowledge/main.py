@@ -46,14 +46,14 @@ def run_visual_qa(question: str, image_url: str, thread_id: str = "default") -> 
     builder = MainGraphBuilder(tools_registry, memory_enabled=True)
     graph = builder.create_main_workflow()
     
-    png_data = graph.get_graph().draw_mermaid_png()
-    img = Image.open(BytesIO(png_data))
-    plt.figure(figsize=(15, 10))
-    plt.imshow(img)
-    plt.axis('off')
-    plt.title('Workflow Graph Visualization', fontsize=16, fontweight='bold')
-    plt.tight_layout()
-    plt.show()
+    # png_data = graph.get_graph().draw_mermaid_png()
+    # img = Image.open(BytesIO(png_data))
+    # plt.figure(figsize=(15, 10))
+    # plt.imshow(img)
+    # plt.axis('off')
+    # plt.title('Workflow Graph Visualization', fontsize=16, fontweight='bold')
+    # plt.tight_layout()
+    # plt.show()
         
     # Prepare input
     initial_state = {

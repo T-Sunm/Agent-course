@@ -8,7 +8,8 @@ from src.core.memory_manager import session_memory
 from src.core.state import (    
     ViReJuniorState, 
     ViReSeniorState, 
-    ViReManagerState
+    ViReManagerState,
+    SubgraphOutputState
 )
 from src.agents.strategies.junior_agent import JuniorAgent
 from src.agents.strategies.senior_agent import SeniorAgent
@@ -23,7 +24,7 @@ class SubGraphBuilder:
     
     def create_agent_subgraph(self, state_class: Type, analyst_instance) -> StateGraph:
         """Create a subgraph for a specific agent type with analyst instance"""
-        workflow = StateGraph(state_class)
+        workflow = StateGraph(state_class, output=SubgraphOutputState)
         
         def agent_node(state, config):
             state["analyst"] = analyst_instance # Auto inject analyst instance into state in first time
