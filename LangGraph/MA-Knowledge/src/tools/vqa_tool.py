@@ -6,6 +6,8 @@ import cv2
 import requests
 from io import BytesIO
 from langchain_core.tools import tool
+from typing import Union
+import base64
 
 device = torch.device("cpu")
 sam_model = SamModel.from_pretrained("facebook/sam-vit-base").to(device)
@@ -69,12 +71,23 @@ def print_streaming(text):
 
 
 def candidate_answers(
-    image_url: str,
+    image: Union[str, Image.Image],
     question: str,
 ) -> str:
-  resp = requests.get(image_url)
-  resp.raise_for_status()
-  img = Image.open(BytesIO(resp.content)).convert('RGB')
+    # Xử lý hình ảnh từ base64 hoặc URL hoặc PIL Image
+  if isinstance(image, str):
+      if image.startswith('http'):
+            # Nếu là URL
+            resp = requests.get(image)
+            resp.raise_for_status()
+            img = Image.open(BytesIO(resp.content)).convert('RGB')
+      else:
+            # Nếu là base64 string
+            img_data = base64.b64decode(image)
+            img = Image.open(BytesIO(img_data)).convert('RGB')
+  else:
+        # Nếu là PIL Image
+        img = image
 
   # 2. Tạo full‐mask
   full_mask = Image.new("L", img.size, 255)
@@ -112,45 +125,52 @@ def candidate_answers(
   return result
 
 
+
 def caption_image(
-    image_url: str,
+    image: Union[str, Image.Image],
 ) -> str:
-  resp = requests.get(image_url)
-  resp.raise_for_status()
-  img = Image.open(BytesIO(resp.content)).convert('RGB')
 
-  # 2. Tạo full‐mask
-  full_mask = Image.new("L", img.size, 255)
+    if isinstance(image, str):
+        resp = requests.get(image)
+        resp.raise_for_status()
+        img = Image.open(BytesIO(resp.content)).convert("RGB")
+    else:
+        img = image
 
-  # 4. Tạo prompt
-  prompt = f"""<image>
-    You are an image captioning system.
-    Given an image, describe it in one concise and factual sentence.
-    – Only describe what is clearly visible in the image.
-    – Do not make guesses or add subjective opinions.
-    – Output only the caption on a single line, no extra text.
+    # 2. Tạo full‐mask (toàn ảnh)
+    full_mask = Image.new("L", img.size, 255)
 
-    Example 1:
-    Caption: A man riding a bicycle on a city street.
+    # 3. Xây prompt
+    prompt = """<image>
+      You are an image captioning system.
+      Given an image, describe it in one concise and factual sentence.
+      – Only describe what is clearly visible in the image.
+      – Do not make guesses or add subjective opinions.
+      – Output only the caption on a single line, no extra text.
 
-    Example 2:
-    Caption: A cat sitting on a windowsill looking outside.
+      Example 1:
+      Caption: A man riding a bicycle on a city street.
 
-    Now apply to the new image:
+      Example 2:
+      Caption: A cat sitting on a windowsill looking outside.
 
-    Caption:"""
+      Now apply to the new image:
 
-  result = dam.get_description(
-      img,
-      full_mask,
-      prompt,
-      streaming=False,
-      temperature=0.2,
-      top_p=0.5,
-      num_beams=1,
-      max_new_tokens=512
-  )
-  return result
+      Caption:"""
+
+    # 4. Gọi DAM để sinh caption
+    result = dam.get_description(
+        img,
+        full_mask,
+        prompt,
+        streaming=False,
+        temperature=0.2,
+        top_p=0.5,
+        num_beams=1,
+        max_new_tokens=512
+    )
+    return result
+
 
 # if __name__ == "__main__":
 #     # VD dùng hàm từ dòng lệnh
@@ -159,6 +179,6 @@ def caption_image(
 #   result = caption_image(URL)
 #   print(result)
 @tool
-def vqa_tool(image_url: str, question: str) -> str:
+def vqa_tool(image: Union[str, Image.Image], question: str) -> str:
     """return the candidate answer with probability of the question"""
-    return candidate_answers(image_url, question)
+    return candidate_answers(image, question)

@@ -6,13 +6,14 @@ from src.core.state import ViReJuniorState, ViReSeniorState, ViReManagerState
 from src.models.llm_provider import get_llm
 from src.utils.tools_utils import _process_knowledge_result
 import re
+from src.utils.image_processing import pil_to_base64
+from src.utils.text_processing import extract_answer_from_result
 
 def tool_node(state: Union[ViReJuniorState, ViReSeniorState, ViReManagerState], 
               tools_registry: Dict[str, Any]) -> Dict[str, Any]:
     """Process tool calls and update state"""
     outputs = []
     tool_calls = getattr(state["messages"][-1], "tool_calls", [])
-    print(f"Processing {len(tool_calls)} tool calls")
     
     updates = {"messages": outputs}
 
@@ -20,21 +21,19 @@ def tool_node(state: Union[ViReJuniorState, ViReSeniorState, ViReManagerState],
         tool_name = tool_call["name"]
         try:
             if tool_name == "vqa_tool":
-                print(f"Processing vqa_tool calls")
-                if not tool_call["args"].get("image_url"):
-                    tool_call["args"]["image_url"] = state.get("image")
+                print(f"Processing {state.get('analyst').name} calls vqa_tool")
+                
+                tool_call["args"]["image"] = pil_to_base64(state.get("image")) 
                 result = tools_registry[tool_name].invoke(tool_call["args"])
-                print(f"Result: {result}")
                 updates["answer_candidate"] = result
                 
             elif tool_name in ["arxiv", "wikipedia"]:
-                print(f"Processing {tool_name} calls")
+                print(f"Processing {state.get('analyst').name} calls {tool_name}")
                 raw_result = tools_registry[tool_name].invoke(tool_call["args"])
-                print(f"Raw Result: {raw_result}")
                 
                 # Process and format the result
                 processed_result = _process_knowledge_result(raw_result, tool_name)
-                
+                print("Processed result for", state.get("analyst").name, ":", processed_result)
                 if "KBs_Knowledge" not in updates:
                     updates["KBs_Knowledge"] = []
                 updates["KBs_Knowledge"].append(processed_result)
@@ -100,8 +99,6 @@ def call_agent_node(state: Union[ViReJuniorState, ViReSeniorState, ViReManagerSt
 def final_reasoning_node(state: Union[ViReJuniorState, ViReSeniorState, ViReManagerState]) -> Dict[str, Any]:
     """Final reasoning node to synthesize results"""
     
-    print("Processing final reasoning for state:", {k: v for k, v in state.items() if k != "messages"})
-    
     # Auto-detect placeholders từ final_system_prompt
     base_prompt = state["analyst"].final_system_prompt
     placeholders = re.findall(r'\{(\w+)\}', base_prompt)
@@ -111,7 +108,7 @@ def final_reasoning_node(state: Union[ViReJuniorState, ViReSeniorState, ViReMana
         'context': state.get("image_caption", ""),
         'question': state.get("question", ""),
         'candidates': state.get("answer_candidate", ""),
-        'KBs_knowledge': "\n".join(state.get("KBs_Knowledge", [])),
+        'KBs_Knowledge': "\n".join(state.get("KBs_Knowledge", [])),
         'LLM_knowledge': state.get("LLM_Knowledge", "")
     }
     
@@ -126,8 +123,10 @@ def final_reasoning_node(state: Union[ViReJuniorState, ViReSeniorState, ViReMana
     human_msg = HumanMessage(content="Please provide your final answer.")
     
     final_response = llm.invoke([system_msg, human_msg])
-    print("Answer candidate:", state.get("answer_candidate", None))
-    print("Final response:", final_response)
+    print("Answer candidate for ", state.get("analyst").name, ":", format_values.get("candidates", None))
+    print("KBs_Knowledge for ", state.get("analyst").name, ":", format_values.get("KBs_Knowledge", []))
+    print("LLM_Knowledge for ", state.get("analyst").name, ":", format_values.get("LLM_Knowledge", ""))
+    print("Final response:", final_response.content)
     return {
         "messages": [final_response],
         "results": [{state["analyst"].name: final_response.content}],

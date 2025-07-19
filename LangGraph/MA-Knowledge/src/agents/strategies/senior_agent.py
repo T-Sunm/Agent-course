@@ -26,7 +26,7 @@ class SeniorAgent(Analyst):
                     Response format:  [Action_1, Action_2]
             """,
             final_system_prompt="""
-                Please answer the question according to the context, candidate answers and KBs_knowledge. 
+                Please answer the question according to the context, candidate answers and KBs_Knowledge. 
                 ====== 
                 Context: A close up of an elephant standing behind a cement wall. 
                 Question: What item in the picture is purported to have a great memory? 
@@ -37,7 +37,7 @@ class SeniorAgent(Analyst):
                 Context: {context}. 
                 Question: {question}. 
                 Candidates: {candidates}. 
-                KBs_knowledge: {KBs_knowledge}. 
+                KBs_knowledge: {KBs_Knowledge}. 
                 Answer:
         """
         )

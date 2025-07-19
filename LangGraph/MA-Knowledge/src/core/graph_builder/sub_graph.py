@@ -1,10 +1,7 @@
-from os import name
 from typing import Dict, Any, Type
 from langgraph.graph import StateGraph, END, START
-from langgraph.checkpoint.memory import MemorySaver
 
 from src.core.nodes.subgraph_node import tool_node, call_agent_node, final_reasoning_node, should_continue
-from src.core.memory_manager import session_memory
 from src.core.state import (    
     ViReJuniorState, 
     ViReSeniorState, 
@@ -18,9 +15,8 @@ from src.agents.strategies.manager_agent import ManagerAgent
 class SubGraphBuilder:
     """Builder for individual agent subgraphs"""
     
-    def __init__(self, tools_registry: Dict[str, Any], memory_enabled: bool = True):
+    def __init__(self, tools_registry: Dict[str, Any]):
         self.tools_registry = tools_registry
-        self.memory_enabled = memory_enabled
     
     def create_agent_subgraph(self, state_class: Type, analyst_instance) -> StateGraph:
         """Create a subgraph for a specific agent type with analyst instance"""
@@ -60,23 +56,17 @@ class SubGraphBuilder:
         """Create subgraph for Junior Analyst"""
         junior_analyst = JuniorAgent()
         workflow = self.create_agent_subgraph(ViReJuniorState, junior_analyst)
-        if self.memory_enabled:
-            return workflow.compile(checkpointer=session_memory.get_checkpointer())
         return workflow.compile()
     
     def create_senior_subgraph(self):
         """Create subgraph for Senior Analyst"""
         senior_analyst = SeniorAgent()
         workflow = self.create_agent_subgraph(ViReSeniorState, senior_analyst)
-        if self.memory_enabled:
-            return workflow.compile(checkpointer=session_memory.get_checkpointer())
         return workflow.compile()
     
     def create_manager_subgraph(self):
         """Create subgraph for Manager Analyst"""
         manager_analyst = ManagerAgent()
         workflow = self.create_agent_subgraph(ViReManagerState, manager_analyst)
-        if self.memory_enabled:
-            return workflow.compile(checkpointer=session_memory.get_checkpointer())
         return workflow.compile()
 

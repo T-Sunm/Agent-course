@@ -1,9 +1,7 @@
 from typing import Dict, Any
 from langgraph.graph import StateGraph, END, START
-from langgraph.checkpoint.memory import MemorySaver
 
 from src.core.nodes.caption_node import caption_node
-from src.core.memory_manager import session_memory
 from src.core.state import ViReAgentState
 from src.core.graph_builder.sub_graph import SubGraphBuilder
 from src.core.nodes.voting_node import voting_node
@@ -11,20 +9,13 @@ from src.core.nodes.voting_node import voting_node
 class MainGraphBuilder:
     """Builder for the main multi-agent workflow"""
     
-    def __init__(self, tools_registry: Dict[str, Any], memory_enabled: bool = True):
+    def __init__(self, tools_registry: Dict[str, Any]):
         self.tools_registry = tools_registry
-        self.memory_enabled = memory_enabled
-        self.subgraph_builder = SubGraphBuilder(tools_registry, memory_enabled)
+        self.subgraph_builder = SubGraphBuilder(tools_registry)
         
-    def create_main_workflow(self, 
-                       checkpointer = None,
-                       thread_id: str = "default"):
+    def create_main_workflow(self):
         """Create the main multi-agent workflow"""
         
-        if checkpointer is None and self.memory_enabled:
-            checkpointer = session_memory.get_checkpointer()
-        elif checkpointer is None:
-            checkpointer = MemorySaver()
         
         main_workflow = StateGraph(ViReAgentState)
 
@@ -50,6 +41,6 @@ class MainGraphBuilder:
 
         main_workflow.add_edge("voting", END)
         
-        return main_workflow.compile(checkpointer=checkpointer)
+        return main_workflow.compile()
 
 

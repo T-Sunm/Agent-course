@@ -1,14 +1,15 @@
 from typing import Annotated, List, Dict, Any
 from langgraph.graph import MessagesState
-from src.agents.base_agent import Analyst
 from src.agents.strategies.junior_agent import JuniorAgent
 from src.agents.strategies.senior_agent import SeniorAgent
 from src.agents.strategies.manager_agent import ManagerAgent
 import operator
+from PIL import Image
+from typing import Union
 
 class ViReAgentState(MessagesState):
     question: str
-    image: str
+    image: Union[str, Image.Image]
     image_caption: str
     results: Annotated[List[Dict[str, str]], operator.add]
     final_answer: str
@@ -17,7 +18,7 @@ class ViReAgentState(MessagesState):
 
 class ViReJuniorState(MessagesState):
     question: str
-    image: str
+    image: Union[str, Image.Image]
     analyst: JuniorAgent
     number_of_steps: int
     answer_candidate: str
@@ -25,7 +26,7 @@ class ViReJuniorState(MessagesState):
 
 class ViReSeniorState(MessagesState):
     question: str
-    image: str
+    image: Union[str, Image.Image]
     analyst: SeniorAgent
     number_of_steps: int
     answer_candidate: str
@@ -33,7 +34,7 @@ class ViReSeniorState(MessagesState):
     results: Dict[str, str]
 class ViReManagerState(MessagesState):
     question: str
-    image: str
+    image: Union[str, Image.Image]
     analyst: ManagerAgent
     number_of_steps: int
     answer_candidate: str
