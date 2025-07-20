@@ -107,9 +107,9 @@ def voting_node(state) -> Dict[str, Any]:
     junior_result = agent_results.get("Junior", "")
     senior_result = agent_results.get("Senior", "")
     manager_result = agent_results.get("Manager", "")
-    junior_answer = extract_answer_from_result(junior_result)
-    senior_answer = extract_answer_from_result(senior_result)
-    manager_answer = extract_answer_from_result(manager_result)
+    junior_answer = normalize_answer_for_voting(extract_answer_from_result(junior_result))
+    senior_answer = normalize_answer_for_voting(extract_answer_from_result(senior_result))
+    manager_answer = normalize_answer_for_voting(extract_answer_from_result(manager_result))
     
     # Apply weighted voting
     final_answer, vote_breakdown = voting_function(

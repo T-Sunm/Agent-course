@@ -28,7 +28,7 @@ def tool_node(state: Union[ViReJuniorState, ViReSeniorState, ViReManagerState],
                 updates["answer_candidate"] = result
                 
             elif tool_name in ["arxiv", "wikipedia"]:
-                print(f"Processing {state.get('analyst').name} calls {tool_name}")
+                print(f"Processing {state.get('analyst').name} calls {tool_name} with args: {tool_call['args']}")
                 raw_result = tools_registry[tool_name].invoke(tool_call["args"])
                 
                 # Process and format the result
@@ -140,6 +140,17 @@ def should_continue(state: Union[ViReJuniorState, ViReSeniorState, ViReManagerSt
     messages = state["messages"]
     last_message = messages[-1]
     
+    number_of_steps = state.get("number_of_steps", 0)
+    
+    max_steps = {
+        "Junior": 4,  
+        "Senior": 6,     
+        "Manager": 8    
+    }.get(state.get("analyst", {}).name)
+    
+    if number_of_steps >= max_steps:
+        print(f"Reached max steps ({max_steps}), stopping ReAct loop")
+        return "final_reasoning"
     # If no tool calls, go to final reasoning  
     if not getattr(last_message, "tool_calls", None):
         return "final_reasoning"
