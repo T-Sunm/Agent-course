@@ -126,7 +126,8 @@ def final_reasoning_node(state: Union[ViReJuniorState, ViReSeniorState, ViReMana
     print("Answer candidate for ", state.get("analyst").name, ":", format_values.get("candidates", None))
     print("KBs_Knowledge for ", state.get("analyst").name, ":", format_values.get("KBs_Knowledge", []))
     print("LLM_Knowledge for ", state.get("analyst").name, ":", format_values.get("LLM_Knowledge", ""))
-    print("Final response:", final_response.content)
+    print(f"Final response for {state.get('analyst').name}:", final_response.content)
+    print("--------------------------------")
     return {
         "messages": [final_response],
         "results": [{state["analyst"].name: final_response.content}],

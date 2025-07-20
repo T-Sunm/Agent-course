@@ -93,24 +93,25 @@ def candidate_answers(
   full_mask = Image.new("L", img.size, 255)
 
   # 4. Tạo prompt
-  prompt = f"""<image>\nYou are a Visual Question Answering system.
-                Given an image and a question, you must propose the top 5 candidate answers, each with a confidence score (from 0.00 to 1.00), sorted in descending order.
-                – Base your answers only on clearly visible information in the image, without any external inference.
-                – Output only one line in the following exact format:
-                Candidates: answer1(score1), answer2(score2), answer3(score3), answer4(score4), answer5(score5)
+  prompt = f"""<image>
+              You are a professional Visual Question Answering (VQA) system.
+              Task  
+              1. Rely *only* on information clearly visible in the image to produce 5 candidate answers, each with a confidence score (0.00–1.00, two decimal places).  
+              2. Replace the placeholders “answer1”, “answer2”… with the actual answers; do **NOT** repeat the template text.  
+              3. If the answer cannot be determined, write `unanswerable(0.00)` in the first position, followed by the next best guesses.  
+              4. Return **exactly one single line**, with no line breaks, in this format:
 
-                Example 1:
-                Question: What color is the car in the image?
-                Candidates: red(0.98), orange(0.75), yellow(0.40), brown(0.15), white(0.05)
+              Candidates: <answer_1>(<score_1>), <answer_2>(<score_2>), <answer_3>(<score_3>), <answer_4>(<score_4>), <answer_5>(<score_5>)
 
-                Example 2:
-                Question: How many people are visible?
-                Candidates: two(0.92), three(0.60), one(0.30), four(0.10), zero(0.02)
+              Example (for illustration — do not copy verbatim):  
+              Question: What color is the car?  
+              Candidates: red(0.98), orange(0.75), yellow(0.15), white(0.07), unanswerable(0.05)
 
-                Now apply to the new case:
+              Now apply to the following image and question:
 
-                Question: {question.strip()}
-                Answer:"""
+              Question: {question}  
+              Answer:
+            """
 
   result = dam.get_description(
       img,

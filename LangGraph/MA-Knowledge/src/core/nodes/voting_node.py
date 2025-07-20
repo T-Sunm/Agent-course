@@ -4,6 +4,39 @@ import re
 from src.core.state import ViReAgentState
 from src.utils.text_processing import extract_answer_from_result
 
+def normalize_answer_for_voting(answer: str) -> str:
+    """
+    Normalize answer for voting by extracting the core answer from various formats.
+    
+    Examples:
+    - "10(0.98)" -> "10"
+    - "Candidates: 10(0.99), 9(0.92)" -> "10"
+    - "The answer is 10" -> "10"
+    - "10" -> "10"
+    """
+    if not answer:
+        return ""
+    
+    answer = str(answer).strip()
+    
+    # Extract from VQA format: "10(0.98)" -> "10"
+    match = re.match(r'^(\w+)\s*\(\d+\.\d+\)', answer)
+    if match:
+        return match.group(1).strip()
+    
+    # Extract from candidates format: "Candidates: 10(0.99), 9(0.92)" -> "10"
+    candidates_match = re.search(r'Candidates:\s*(\w+)\s*\(\d+\.\d+\)', answer)
+    if candidates_match:
+        return candidates_match.group(1).strip()
+    
+    # Extract from "The answer is X" format
+    answer_match = re.search(r'the\s+answer\s+is\s+(\w+)', answer.lower())
+    if answer_match:
+        return answer_match.group(1).strip()
+    
+    # If it's just a simple answer, return as is
+    return answer
+
 def voting_function(junior_answer: str, senior_answer: str, manager_answer: str) -> Tuple[str, Dict[str, int]]:
     """
     Weighted voting function implementing AF = Voting(AJ[w1], AS[w2], AM[w3])
